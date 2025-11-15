@@ -10,3 +10,12 @@ class ProductViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
     permission_classes = []  # GET libre, POST/PUT/DELETE requiere login
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        # Filtro por categoría
+        category = self.request.query_params.get('category')
+        if category:
+            queryset = queryset.filter(category__iexact=category)
+
+        return queryset
