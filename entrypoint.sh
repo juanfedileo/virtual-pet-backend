@@ -7,7 +7,7 @@ done
 echo "PostgreSQL está listo"
 
 echo "Aplicando migraciones..."
-python manage.py makemigrations --noinput
+python manage.py makemigrations --check || python manage.py makemigrations
 python manage.py migrate --noinput
 
 echo "Iniciando servidor Django..."
