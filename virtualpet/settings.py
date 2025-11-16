@@ -137,7 +137,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",  # Vite
+    "http://virtual-pet-frontend.s3-website.us-east-2.amazonaws.com",
 ]
+
+CORS_ALLOW_CREDENTIALS = True
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
