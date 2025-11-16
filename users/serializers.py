@@ -16,6 +16,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             'username': self.user.username,
             'email': self.user.email,
             'role': self.user.role,
+            'id': self.user.id
         }
         return data
     
