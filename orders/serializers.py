@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Orders, OrderItem  # <-- 1. Importamos el nuevo OrderItem
 from products.models import Product
+from products.serializers import ProductSerializer
 # Opcional: Para mostrar datos del cliente, pero no es necesario aún
 # from users.serializers import UserSerializer 
 
@@ -17,6 +18,19 @@ class OrderItemPayloadSerializer(serializers.Serializer):
     quantity = serializers.IntegerField(min_value=1)
 
 
+# --- 2. SERIALIZADOR NUEVO (PARA LEER) ---
+# Este serializer define CÓMO se debe VER un OrderItem
+# cuando lo devolvemos en el JSON
+class OrderItemReadSerializer(serializers.ModelSerializer):
+    # 'product' será un objeto JSON completo (id, title, price, etc.)
+    product = ProductSerializer(read_only=True) 
+
+    class Meta:
+        model = OrderItem
+        # Le decimos qué campos mostrar
+        fields = ['product', 'quantity', 'price_at_purchase']
+
+
 class OrderSerializer(serializers.ModelSerializer):
     
     # --- 3. CAMPO NUEVO (para escribir) ---
@@ -24,6 +38,12 @@ class OrderSerializer(serializers.ModelSerializer):
     # Lo marcamos como "write_only" porque no es un campo real
     # en el modelo 'Orders', solo lo usamos para crear.
     items = OrderItemPayloadSerializer(many=True, write_only=True)
+
+    items_read = OrderItemReadSerializer(
+        source='orderitem_set', 
+        many=True, 
+        read_only=True
+    )
 
     # --- 4. CAMPO ANTIGUO (modificado para leer) ---
     # El campo 'products' (de ManyToManyField) ahora solo
@@ -41,7 +61,7 @@ class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Orders
         # 'items' se agrega a los fields para que sea aceptado en el POST
-        fields = ['id', 'client', 'employee', 'products', 'items', 'status', 'created_at', 'total']
+        fields = ['id', 'client', 'employee', 'products', 'items', 'status', 'created_at', 'total', 'items_read']
         
         # Ocultamos 'items' de la respuesta (GET) porque 'products' ya está ahí.
         extra_kwargs = {
