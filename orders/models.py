@@ -5,6 +5,8 @@ from products.models import Product
 class Orders(models.Model):
     STATUS_CHOICES = [
         ('pending', 'Pending'),
+        ('ready to ship', 'Ready to ship'), 
+        ('shipped', 'Shipped'),             
         ('delivered', 'Delivered'),
     ]
 
@@ -32,7 +34,7 @@ class Orders(models.Model):
     )
     # --- FIN DEL CAMBIO ---
 
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

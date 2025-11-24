@@ -8,5 +8,10 @@ class User(AbstractUser):
     )
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='cliente')
 
+    # --- NUEVOS CAMPOS ---
+    # El email ya existe en AbstractUser
+    address = models.CharField(max_length=255, blank=True, null=True)
+    phone = models.CharField(max_length=20, blank=True, null=True)
+
     def __str__(self):
         return f"{self.username} ({self.role})"
