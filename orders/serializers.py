@@ -61,11 +61,14 @@ class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Orders
         # 'items' se agrega a los fields para que sea aceptado en el POST
-        fields = ['id', 'client', 'employee', 'products', 'items', 'status', 'created_at', 'total', 'items_read']
+        fields = ['id', 'client', 'employee', 'products', 'items', 'status', 'created_at', 'total', 
+        'items_read', 'shipping_address', 'shipping_name']
         
         # Ocultamos 'items' de la respuesta (GET) porque 'products' ya está ahí.
         extra_kwargs = {
             'items': {'write_only': True},
+            'shipping_address': {'required': False}, 
+            'shipping_name': {'required': False},
         }
 
     def validate(self, data):
@@ -91,6 +94,16 @@ class OrderSerializer(serializers.ModelSerializer):
         # 1. Sacamos los datos de los 'items' antes de crear la orden
         items_data = validated_data.pop('items')
         
+        client = validated_data.get('client')
+
+        if 'shipping_address' not in validated_data and client.address:
+            validated_data['shipping_address'] = client.address
+
+        if 'shipping_name' not in validated_data:
+            # Usamos el nombre y apellido si existen, sino el username
+            full_name = f"{client.first_name} {client.last_name}".strip()
+            validated_data['shipping_name'] = full_name if full_name else client.username
+
         # 2. Creamos la Orden principal (con client, employee, etc.)
         order = Orders.objects.create(**validated_data)
 

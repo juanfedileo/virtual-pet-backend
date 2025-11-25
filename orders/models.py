@@ -34,6 +34,8 @@ class Orders(models.Model):
     )
     # --- FIN DEL CAMBIO ---
 
+    shipping_address = models.CharField(max_length=255, blank=True, null=True)
+    shipping_name = models.CharField(max_length=150, blank=True, null=True) # El nombre/username
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
 
