@@ -8,7 +8,9 @@ from rest_framework import viewsets
 from .models import Orders
 from .serializers import OrderSerializer
 from rest_framework.permissions import IsAuthenticated
-# from users.permissions import IsEmpleado
+# Importaciones para el mail
+from django.core.mail import send_mail
+from django.conf import settings
 
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Orders.objects.all()
@@ -24,9 +26,9 @@ class OrderViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'], url_path='my-orders')
     def mis_pedidos(self, request):
         user = request.user
-
-        # if user.role != 'cliente':
-        #     return Response({"detail": "Solo los clientes pueden ver sus pedidos."}, status=403)
+        # rehabilitado en refactor
+        if user.role != 'cliente':
+            return Response({"detail": "Solo los clientes pueden ver sus pedidos."}, status=403)
 
         pedidos = Orders.objects.filter(client=user)
         serializer = self.get_serializer(pedidos, many=True)
@@ -56,5 +58,61 @@ class OrderViewSet(viewsets.ModelViewSet):
         pedido.status = nuevo_estado.lower()
         pedido.employee = user  # quien lo está procesando
         pedido.save()
+
+        # 👇👇👇 AGREGA ESTO TEMPORALMENTE 👇👇👇
+        print(f"\n--- 🕵️‍♂️ DEBUGGING VIRTUALPET ---")
+        print(f"1. Estado recibido del Front: '{nuevo_estado}'")
+        print(f"2. Estado final en DB: '{pedido.status}'")
+        print(f"3. Canales de notifiación (Raw): {pedido.notification_channels}")
+        print(f"4. Tipo de dato de canales: {type(pedido.notification_channels)}")
+        print(f"5. ¿Es 'shipped'? {pedido.status == 'shipped'}")
+        print(f"6. ¿Está 'email' en la lista? {'email' in pedido.notification_channels}")
+        print(f"----------------------------------\n")
+        # 👆👆👆 FIN DE LOS PRINTS 👆👆👆
+        if pedido.status == "shipped":
+
+            # Verificamos si el usuario quiere recibir notificaciones por mail
+            # Importaciones para el mail
+            if 'email' in pedido.notification_channels:
+                destinatario = pedido.client.email
+                if destinatario:
+                    # 1. Construimos el Resumen del Pedido
+                    items_list = ""
+                    for item in pedido.orderitem_set.all():
+                        items_list += f"- {item.quantity}x {item.product.title} (${item.price_at_purchase})\n"
+
+                    # 2. Armamos el mensaje completo
+                    asunto = f'📦 ¡Tu pedido #{pedido.id} está en camino!'
+                    
+                    mensaje = f"""
+                    Estimado/a {pedido.shipping_name or pedido.client.first_name or pedido.client.username},
+
+                    ¡Buenas noticias! Tu pedido de Virtual Pet ha sido despachado y está en viaje.
+
+                    📍 Dirección de envío:
+                    {pedido.shipping_address}
+
+                    📝 Resumen del pedido:
+                    {items_list}
+                    
+                    💰 Total: ${pedido.total}
+
+                    Gracias por elegirnos.
+                    El equipo de Virtual Pet.
+                    """
+
+                    print(f"📧 Enviando correo a {destinatario}...")
+
+                    try:
+                        send_mail(
+                            subject=asunto,
+                            message=mensaje,
+                            from_email=settings.DEFAULT_FROM_EMAIL,
+                            recipient_list=[destinatario],
+                            fail_silently=False, 
+                        )
+                        print("✅ Correo enviado con éxito.")
+                    except Exception as e:
+                        print(f"❌ Error al enviar correo: {e}")
 
         return Response(self.get_serializer(pedido).data)
