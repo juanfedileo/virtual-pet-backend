@@ -104,6 +104,11 @@ class OrderSerializer(serializers.ModelSerializer):
             full_name = f"{client.first_name} {client.last_name}".strip()
             validated_data['shipping_name'] = full_name if full_name else client.username
 
+        if 'notification_channels' not in validated_data:
+            # Esto copia la lista completa (ej: ['email', 'whatsapp'])
+            validated_data['notification_channels'] = client.notification_channels
+
+            
         # 2. Creamos la Orden principal (con client, employee, etc.)
         order = Orders.objects.create(**validated_data)
 

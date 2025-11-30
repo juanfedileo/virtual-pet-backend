@@ -35,7 +35,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ["id", "username", "email", "password", "role", "address", "phone", "is_staff", "is_active"]
+        fields = ["id", "username", "email", "password", "role", "address", "phone", "is_staff", "is_active", "notification_channels"]
 
     def create(self, validated_data):
         user = User.objects.create_user(
@@ -45,6 +45,8 @@ class UserSerializer(serializers.ModelSerializer):
             role=validated_data.get('role', 'cliente'),
             # --- GUARDAMOS LOS NUEVOS DATOS ---
             address=validated_data.get('address', ''),
-            phone=validated_data.get('phone', '')
+            phone=validated_data.get('phone', ''),
+            # -- nuevo Refactor, canales de notificacion
+            notification_channels=validated_data.get('notification_channels', [])
         )
         return user

@@ -166,3 +166,13 @@ SIMPLE_JWT = {
     "USER_ID_CLAIM": "user_id",
 }
 
+# --- CONFIGURACIÓN DE EMAIL (GMAIL SMTP) ---
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+# Tu dirección de correo nueva
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER') 
+# Tu contraseña de aplicación (la de 16 letras)
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD') 
+DEFAULT_FROM_EMAIL = f"Virtual Pet <{EMAIL_HOST_USER}>" 
